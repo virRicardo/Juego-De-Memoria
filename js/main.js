@@ -1,4 +1,4 @@
-//inicializacion de variables
+document.getElementById("btn-reintentar").style.display = "block";
 let tarjetasDestapadas = 0;
 let tarjeta1 = null;
 let tarjeta2 = null;
@@ -15,28 +15,34 @@ let clickAudio = new Audio(`./sound/click.wav`);
 let juegoPerdido = new Audio(`./sound/juegoPerdido.wav`);
 let juegoGanado = new Audio(`./sound/juegoGanado.wav`);
 let parCorrecto = new Audio(`./sound/parCorrecto.wav`);
-
-//apuntando a doc html
 let mostarMovimientos = document.getElementById(`movimientos`);
 let mostarAciertos = document.getElementById(`aciertos`);
 let mostarTiempo = document.getElementById(`t-restante`);
 
+function mezclar(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
 //generar numeros aleatorios
 let numeros = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8];
-numeros = numeros.sort(() => {
-  return Math.random() - 0.5;
-});
+numeros = mezclar(numeros);
 console.log(numeros);
 
-//funciones
 function contarTiempo() {
   tiempoRegresivoId = setInterval(() => {
     timer--;
-    mostarTiempo.innerHTML = `Tiempo: ${timer} segundos`;
+    mostarTiempo.innerHTML = `⏱️Tiempo: ${timer} segundos`;
+
     if (timer == 0) {
       clearInterval(tiempoRegresivoId);
       bloquearTarjetas();
       juegoPerdido.play();
+      mostarTiempo.innerHTML = `⏱️Tiempo agotado 😢`;
     }
   }, 1000);
 }
@@ -49,7 +55,6 @@ function bloquearTarjetas() {
   }
 }
 
-//funcion principal
 function destapar(id) {
   if (temporizador == false) {
     contarTiempo();
@@ -65,32 +70,28 @@ function destapar(id) {
     tarjeta1.innerHTML = `<img src="./img/${primerResultado}.png" alt="">`;
     clickAudio.play();
 
-    //desabilitar primer boton
     tarjeta1.disabled = true;
   } else if (tarjetasDestapadas == 2) {
-    //mostrar segundo numero
     tarjeta2 = document.getElementById(id);
     segundoResultado = numeros[id];
     tarjeta2.innerHTML = `<img src="./img/${segundoResultado}.png" alt="">`;
 
-    //desabilitar segundo boton
     tarjeta2.disabled = true;
 
-    //incrementar movimientos
     movimientos++;
     mostarMovimientos.innerHTML = `Movimientos: ${movimientos}`;
 
     if (primerResultado == segundoResultado) {
-      //encerar contador tarjetas destapadas
       tarjetasDestapadas = 0;
 
-      //aumentar aciertos
       aciertos++;
       mostarAciertos.innerHTML = `Aciertos: ${aciertos}`;
       parCorrecto.play();
 
       if (aciertos == 8) {
         juegoGanado.play();
+        lanzarConfetti();
+
         clearInterval(tiempoRegresivoId);
         mostarAciertos.innerHTML = `Aciertos: ${aciertos}`;
         mostarTiempo.innerHTML = `Fantastico demoraste ${
@@ -100,7 +101,6 @@ function destapar(id) {
       }
     } else {
       parIncorrecto.play();
-      //mostar momentaneamente valores y volver a tapar
       setTimeout(() => {
         tarjeta1.innerHTML = ` `;
         tarjeta2.innerHTML = ` `;
@@ -109,5 +109,32 @@ function destapar(id) {
         tarjetasDestapadas = 0;
       }, 800);
     }
+  }
+}
+
+function reiniciarJuego() {
+  location.reload();
+}
+
+function lanzarConfetti() {
+  let contenedor = document.getElementById("confetti-container");
+
+  for (let i = 0; i < 100; i++) {
+    let confetti = document.createElement("div");
+    confetti.classList.add("confetti");
+
+    confetti.style.left = Math.random() * 100 + "vw";
+
+    confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+
+    confetti.style.width = confetti.style.height = Math.random() * 8 + 5 + "px";
+
+    confetti.style.animationDuration = Math.random() * 2 + 2 + "s";
+
+    contenedor.appendChild(confetti);
+
+    setTimeout(() => {
+      confetti.remove();
+    }, 3000);
   }
 }
